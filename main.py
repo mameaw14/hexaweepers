@@ -1,5 +1,5 @@
 import arcade
-from world import World, Hexa, Map
+from world import World, Tile, Map
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600

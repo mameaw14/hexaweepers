@@ -19,24 +19,59 @@ class Map(object):
     def __init__(self, row, col):
         self.row = row
         self.col = col
-        self.hexa_list = [[0] * col for i in range(row)]
+        self.tiles_list = [[0] * col for i in range(row)]
         for i in range(0, row):
             for j in range(0, col):
-                hexa = Hexa(30 + j * 38 + (i % 2 == 0) * 19, 50 + i * 35)
-                self.hexa_list[i][j] = hexa
+                tile = Tile(30 + j * 38 + (i % 2 == 0) * 19, 50 + i * 35)
+                self.tiles_list[i][j] = tile
 
     def draw(self):
-        for row in self.hexa_list:
+        for row in self.tiles_list:
             for i in row:
                 i.draw()
-    
-    def onclick(self, x , y):
-        for row in self.hexa_list:
-            for i in row:
-                if(i.check_onclick(x, y)):
-                    i.click()
 
-class Hexa(object):
+    def onclick(self, x , y):
+        for row in self.tiles_list:
+            for i in row:
+                if i.check_onclick(x, y):
+                    i.click()
+                    self.update(self.tiles_list.index(row), row.index(i))
+
+    def update(self, i, j):
+        try:
+            self.tiles_list[i][j - 1].color = arcade.color.AFRICAN_VIOLET
+        except IndexError:
+            pass
+
+        try:
+            self.tiles_list[i][j + 1].color = arcade.color.AFRICAN_VIOLET
+        except IndexError:
+            pass
+
+        if i % 2 == 0:
+            j += 1
+
+        try:
+            self.tiles_list[i - 1][j - 1].color = arcade.color.AFRICAN_VIOLET
+        except IndexError:
+            pass
+
+        try:
+            self.tiles_list[i - 1][j].color = arcade.color.AFRICAN_VIOLET
+        except IndexError:
+            pass
+
+        try:
+            self.tiles_list[i + 1][j - 1].color = arcade.color.AFRICAN_VIOLET
+        except IndexError:
+            pass
+
+        try:
+            self.tiles_list[i + 1][j].color = arcade.color.AFRICAN_VIOLET
+        except IndexError:
+            pass
+
+class Tile(object):
     """hexagon blocks"""
     def __init__(self, x, y):
         self.is_mine = random.random() < 0.1
@@ -59,6 +94,7 @@ class Hexa(object):
 
     def check_onclick(self, x, y):
         return arcade.are_polygons_intersecting(self.point_list, ((x, y), (x - 1, y), (x, y + 1)))
-    
+
     def click(self):
         self.state = State.flagged
+
