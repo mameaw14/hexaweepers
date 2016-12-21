@@ -75,7 +75,7 @@ class HexSweepersGame(arcade.Window):
         """
         Called when the user presses a mouse button.
         """
-        pass
+        self.map.onclick(x, y)
 
     def on_mouse_release(self, x, y, button, key_modifiers):
         """
