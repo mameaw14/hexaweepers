@@ -18,6 +18,7 @@ class HexSweepersGame(arcade.Window):
     def __init__(self, width, height):
         super().__init__(width, height)
 
+        self.world = World()
         self.map = Map(13, 20)
         arcade.set_background_color(arcade.color.WHITE)
         self.set_update_rate(1/60)
@@ -33,6 +34,7 @@ class HexSweepersGame(arcade.Window):
         """
 
         arcade.start_render()
+        self.world.draw()
         self.map.draw()
 
     def animate(self, delta_time):
@@ -75,7 +77,11 @@ class HexSweepersGame(arcade.Window):
         """
         Called when the user presses a mouse button.
         """
-        self.map.onclick(x, y)
+        if button == 1:
+            self.map.onclick_left(x, y)
+        
+        if button == 4:
+            self.map.onclick_right(x, y)
 
     def on_mouse_release(self, x, y, button, key_modifiers):
         """

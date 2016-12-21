@@ -10,10 +10,14 @@ class State(Enum):
 
 class World(object):
     """world class"""
+    numbers_of_mine = 0
     def __init__(self):
-        self.x = 9
-    def animate(self, delta):
-        self.x
+        self.x = 1
+
+    def draw(self):
+        arcade.draw_text(str(self.numbers_of_mine), 20, 500, arcade.color.BLACK, 13,
+                         width=40, align="center",
+                         anchor_x="center", anchor_y="center")
 
 class Map(object):
     """create map"""
@@ -33,12 +37,19 @@ class Map(object):
             for i in row:
                 i.draw()
 
-    def onclick(self, x , y):
+    def onclick_left(self, x, y):
         for row in self.tiles_list:
             for i in row:
                 if i.check_onclick(x, y):
                     self.update(self.tiles_list.index(row), row.index(i))
-                    i.click()
+                    i.onclick_left()
+                    return
+    
+    def onclick_right(self, x, y):
+        for row in self.tiles_list:
+            for i in row:
+                if i.check_onclick(x, y):
+                    i.onclick_right()
                     return
 
     def get_neighbor_list(self, i, j):
@@ -60,7 +71,6 @@ class Map(object):
         return lis
 
     def update(self, i, j):
-        print("call function")
         tile = self.tiles_list[i][j]
         if tile.is_mine != True and tile.state != State.clear:
             tile.color = arcade.color.AFRICAN_VIOLET
@@ -99,12 +109,14 @@ class Tile(object):
                            (x + 17, y - 10))
         if self.is_mine:
             self.color = arcade.color.SPANISH_RED
+            World.numbers_of_mine += 1
         else:
             self.color = arcade.color.SPANISH_VIOLET
 
     def draw(self):
         if self.state == State.flagged:
-            return
+            self.color = arcade.color.TANGELO
+        
         arcade.draw_polygon_filled(self.point_list, self.color)
         arcade.draw_text(str(self.count_mine), self.x, self.y, arcade.color.WHITE, 10,
                          width=40, align="center",
@@ -113,6 +125,12 @@ class Tile(object):
     def check_onclick(self, x, y):
         return arcade.are_polygons_intersecting(self.point_list, ((x, y), (x - 1, y), (x, y + 1)))
 
-    def click(self):
+    def onclick_left(self):
         self.state = State.clear
+
+    def onclick_right(self):
+        if self.state != State.flagged:
+            self.state = State.flagged
+        else:
+            self.state = State.hidden
 
