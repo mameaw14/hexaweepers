@@ -20,7 +20,7 @@ class HexSweepersGame(arcade.Window):
 
         self.map = Map(13, 20)
         arcade.set_background_color(arcade.color.WHITE)
-
+        self.set_update_rate(1/60)
         # Note:
         # You can change how often the animate() method is called by using the
         # set_update_rate() method in the parent class.

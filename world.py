@@ -25,6 +25,8 @@ class Map(object):
                 tile = Tile(30 + j * 38 + (i % 2 == 0) * 19, 50 + i * 35)
                 self.tiles_list[i][j] = tile
 
+        self.calculate_status()
+
     def draw(self):
         for row in self.tiles_list:
             for i in row:
@@ -71,11 +73,40 @@ class Map(object):
         except IndexError:
             pass
 
+    def get_neighbor_list(self, i, j):
+        lis = [(i, j - 1), (i, j + 1)]
+        
+        if i % 2 == 0:
+            j += 1
+        
+        lis.append((i - 1, j - 1))
+        lis.append((i - 1, j))
+        lis.append((i + 1, j - 1))
+        lis.append((i + 1, j))
+        copy_list = list(lis)
+
+        for i, j in copy_list:
+            if i < 0 or i >= self.row or j < 0 or j >= self.col:
+                lis.remove((i, j))
+
+        return lis
+
+    def calculate_status(self):
+        for i in range(0, self.row):
+            for j in range(0, self.col):
+                if self.tiles_list[i][j].is_mine:
+                    neighbor_list = self.get_neighbor_list(i, j)
+                    for x, y in neighbor_list:
+                        self.tiles_list[x][y].count_mine += 1
+
 class Tile(object):
     """hexagon blocks"""
     def __init__(self, x, y):
+        self.x = x
+        self.y = y
         self.is_mine = random.random() < 0.1
         self.state = State.hidden
+        self.count_mine = 0
         self.point_list = ((x + 0, y - 20),
                            (x - 17, y - 10),
                            (x - 17, y + 10),
@@ -91,6 +122,9 @@ class Tile(object):
         if self.state == State.flagged:
             return
         arcade.draw_polygon_filled(self.point_list, self.color)
+        arcade.draw_text(str(self.count_mine), self.x, self.y, arcade.color.WHITE, 10,
+                         width=40, align="center",
+                         anchor_x="center", anchor_y="center")
 
     def check_onclick(self, x, y):
         return arcade.are_polygons_intersecting(self.point_list, ((x, y), (x - 1, y), (x, y + 1)))
