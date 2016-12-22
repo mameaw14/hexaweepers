@@ -2,14 +2,15 @@ import arcade
 from enum import Enum
 import random
 
+
 class State(Enum):
     hidden = 1
     flagged = 2
     marked = 3
     clear = 4
 
+
 class World(object):
-    """world class"""
 
     def __init__(self):
         self.map = Map(13, 20, self)
@@ -37,8 +38,9 @@ class World(object):
     def onclick_right(self, x, y):
         self.map.onclick_right(x, y)
 
+
 class Map(object):
-    """create map"""
+
     def __init__(self, row, col, world):
         self.row = row
         self.col = col
@@ -50,6 +52,8 @@ class Map(object):
                 tile = Tile(30 + j * 38 + (i % 2 == 0) * 19, 50 + i * 35, is_mine,
                             self.get_neighbor_list(i, j))
                 self.tiles_list[i][j] = tile
+                if is_mine:
+                    self.world.numbers_of_mine += 1
 
         self.calculate_status()
 
@@ -73,8 +77,10 @@ class Map(object):
                 if i.check_onclick(x, y):
                     if i.state == State.hidden:
                         i.change_state(State.flagged)
+                        self.world.numbers_of_flagged += 1
                     elif i.state == State.flagged:
                         i.change_state(State.hidden)
+                        self.world.numbers_of_flagged -= 1
                     return
 
     def get_neighbor_list(self, i, j):
@@ -89,7 +95,7 @@ class Map(object):
         lis.append((i + 1, j))
         copy_list = list(lis)
 
-        for i, j in copy_list:
+        for (i, j) in copy_list:
             if i < 0 or i >= self.row or j < 0 or j >= self.col:
                 lis.remove((i, j))
 
@@ -105,7 +111,7 @@ class Map(object):
             return
 
         neighbor_list = self.tiles_list[i][j].neighbor_list
-        for x, y in neighbor_list:
+        for (x, y) in neighbor_list:
             self.update(x, y)
 
     def calculate_status(self):
@@ -113,7 +119,7 @@ class Map(object):
             for j in range(0, self.col):
                 if self.tiles_list[i][j].is_mine:
                     neighbor_list = self.tiles_list[i][j].neighbor_list
-                    for x, y in neighbor_list:
+                    for (x, y) in neighbor_list:
                         self.tiles_list[x][y].count_mine += 1
 
     def reveal_all_tiles(self):
@@ -121,8 +127,10 @@ class Map(object):
             for i in row:
                 i.change_state(State.clear)
 
+
 class Tile(object):
     """hexagon blocks"""
+
     def __init__(self, x, y, is_mine, lis):
         self.x = x
         self.y = y
@@ -149,9 +157,9 @@ class Tile(object):
         if state == State.flagged:
             self.change_color(arcade.color.RUBY_RED)
             return
-        if state == State.hidden:
+        elif state == State.hidden:
             self.change_color(arcade.color.SPANISH_VIOLET)
-        if state == State.clear:
+        elif state == State.clear:
             if self.is_mine:
                 self.change_color(arcade.color.SALMON)
             else:
