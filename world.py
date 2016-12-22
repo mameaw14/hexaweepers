@@ -11,11 +11,15 @@ class State(Enum):
 class World(object):
     """world class"""
     numbers_of_mine = 0
+    numbers_of_flagged = 0
     def __init__(self):
         self.x = 1
 
     def draw(self):
         arcade.draw_text(str(self.numbers_of_mine), 20, 500, arcade.color.BLACK, 13,
+                         width=40, align="center",
+                         anchor_x="center", anchor_y="center")
+        arcade.draw_text(str(self.numbers_of_flagged), 300, 500, arcade.color.BLACK, 13,
                          width=40, align="center",
                          anchor_x="center", anchor_y="center")
 
@@ -27,7 +31,8 @@ class Map(object):
         self.tiles_list = [[0] * col for i in range(row)]
         for i in range(0, row):
             for j in range(0, col):
-                tile = Tile(30 + j * 38 + (i % 2 == 0) * 19, 50 + i * 35, self.get_neighbor_list(i, j))
+                tile = Tile(30 + j * 38 + (i % 2 == 0) * 19, 50 + i * 35,
+                            self.get_neighbor_list(i, j))
                 self.tiles_list[i][j] = tile
 
         self.calculate_status()
@@ -42,9 +47,8 @@ class Map(object):
             for i in row:
                 if i.check_onclick(x, y):
                     self.update(self.tiles_list.index(row), row.index(i))
-                    i.onclick_left()
                     return
-    
+
     def onclick_right(self, x, y):
         for row in self.tiles_list:
             for i in row:
@@ -73,8 +77,7 @@ class Map(object):
     def update(self, i, j):
         tile = self.tiles_list[i][j]
         if tile.is_mine != True and tile.state != State.clear:
-            tile.color = arcade.color.AFRICAN_VIOLET
-            tile.state = State.clear
+            tile.onclick_left()
             if tile.count_mine != 0:
                 return
         else:
@@ -98,7 +101,7 @@ class Tile(object):
         self.x = x
         self.y = y
         self.neighbor_list = lis
-        self.is_mine = random.random() < 0.1
+        self.is_mine = random.random() < 0.2
         self.state = State.hidden
         self.count_mine = 0
         self.point_list = ((x + 0, y - 20),
@@ -108,7 +111,7 @@ class Tile(object):
                            (x + 17, y + 10),
                            (x + 17, y - 10))
         if self.is_mine:
-            self.color = arcade.color.SPANISH_RED
+            self.color = arcade.color.SPANISH_VIOLET
             World.numbers_of_mine += 1
         else:
             self.color = arcade.color.SPANISH_VIOLET
@@ -116,21 +119,33 @@ class Tile(object):
     def draw(self):
         if self.state == State.flagged:
             self.color = arcade.color.TANGELO
-        
+
         arcade.draw_polygon_filled(self.point_list, self.color)
-        arcade.draw_text(str(self.count_mine), self.x, self.y, arcade.color.WHITE, 10,
-                         width=40, align="center",
-                         anchor_x="center", anchor_y="center")
+
+        if self.state == State.clear and self.count_mine != 0:
+            arcade.draw_text(str(self.count_mine), self.x, self.y, arcade.color.WHITE, 10,
+                             width=40, align="center",
+                             anchor_x="center", anchor_y="center")
 
     def check_onclick(self, x, y):
         return arcade.are_polygons_intersecting(self.point_list, ((x, y), (x - 1, y), (x, y + 1)))
 
     def onclick_left(self):
         self.state = State.clear
+        if self.count_mine == 0:
+            self.color = arcade.color.LIGHT_PASTEL_PURPLE
+        else:
+            self.color = arcade.color.LIGHT_PASTEL_PURPLE
 
     def onclick_right(self):
-        if self.state != State.flagged:
+        if self.state == State.hidden:
             self.state = State.flagged
-        else:
+            World.numbers_of_flagged += 1
+        elif self.state == State.flagged:
             self.state = State.hidden
+            World.numbers_of_flagged -= 1
+            if self.is_mine:
+                self.color = arcade.color.SPANISH_RED
+            else:
+                self.color = arcade.color.SPANISH_VIOLET
 
