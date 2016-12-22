@@ -12,24 +12,37 @@ class State(Enum):
 
 class World(object):
 
+    numbers_of_tiles = 260
+    numbers_of_mine = 0
+    numbers_of_flagged = 0
+    numbers_of_cleared = 0
+    is_game_over = False
+
     def __init__(self):
         self.map = Map(13, 20, self)
-        self.numbers_of_mine = 0
-        self.numbers_of_flagged = 0
-        self.is_game_over = False
+
+    def setup(self):
+        World.numbers_of_mine = 0
+        World.numbers_of_flagged = 0
+        World.numbers_of_cleared = 0
+        World.is_game_over = False
+        self.map = Map(13, 20, self)
 
     def draw(self):
         self.map.draw()
-        arcade.draw_text(str(self.numbers_of_mine), 20, 500, arcade.color.BLACK, 13,
-                         width=40, align="center",
+        arcade.draw_text("remain",
+                         400, 570, arcade.color.BLACK, 16, align="center",
                          anchor_x="center", anchor_y="center")
-        arcade.draw_text(str(self.numbers_of_flagged), 300, 500, arcade.color.BLACK, 13,
-                         width=40, align="center",
+        arcade.draw_text(str(self.numbers_of_mine - self.numbers_of_flagged),
+                         400, 530, arcade.color.BLACK, 30, align="center",
                          anchor_x="center", anchor_y="center")
 
     def game_over(self):
         self.is_game_over = True
         self.map.reveal_all_tiles()
+
+    def is_game_win(self):
+        return self.numbers_of_cleared + self.numbers_of_mine == self.numbers_of_tiles
 
     def onclick_left(self, x, y):
         if self.map.onclick_left(x, y):
@@ -65,7 +78,7 @@ class Map(object):
     def onclick_left(self, x, y):
         for row in self.tiles_list:
             for i in row:
-                if i.check_onclick(x, y):
+                if i.check_onclick(x, y) and i.state != State.flagged:
                     self.update(self.tiles_list.index(row), row.index(i))
                     if i.is_mine:
                         return 1
@@ -105,6 +118,7 @@ class Map(object):
         tile = self.tiles_list[i][j]
         if tile.is_mine != True and tile.state != State.clear:
             tile.change_state(State.clear)
+            self.world.numbers_of_cleared += 1
             if tile.count_mine != 0:
                 return
         else:
@@ -125,11 +139,15 @@ class Map(object):
     def reveal_all_tiles(self):
         for row in self.tiles_list:
             for i in row:
-                i.change_state(State.clear)
+                i.clear()
 
 
 class Tile(object):
     """hexagon blocks"""
+
+    color_numbers = [arcade.color.AO, arcade.color.FRENCH_BLUE,
+                     arcade.color.BARN_RED, arcade.color.BRIGHT_PINK,
+                     arcade.color.BURNT_ORANGE, arcade.color.BLACK]
 
     def __init__(self, x, y, is_mine, lis):
         self.x = x
@@ -153,27 +171,34 @@ class Tile(object):
         self.color = color
 
     def change_state(self, state):
-        self.state = state
         if state == State.flagged:
-            self.change_color(arcade.color.RUBY_RED)
-            return
+            self.change_color(arcade.color.TANGELO)
         elif state == State.hidden:
             self.change_color(arcade.color.SPANISH_VIOLET)
         elif state == State.clear:
-            if self.is_mine:
-                self.change_color(arcade.color.SALMON)
-            else:
-                self.change_color(arcade.color.LIGHT_PASTEL_PURPLE)
+            self.change_color(arcade.color.LIGHT_PASTEL_PURPLE)
+
+        self.state = state
+
+    def clear(self):
+        if self.is_mine and self.state == State.flagged:
+            pass
+        elif self.state == State.flagged:
+            self.change_color(arcade.color.SAGE)
+        elif self.is_mine:
+            self.change_color(arcade.color.DOGWOOD_ROSE)
+        else:
+            self.change_color(arcade.color.LIGHT_PASTEL_PURPLE)
+
+        self.state = State.clear
 
     def draw(self):
-        if self.state == State.flagged:
-            self.change_color(arcade.color.TANGELO)
-
         arcade.draw_polygon_filled(self.point_list, self.color)
 
         if self.state == State.clear and self.count_mine != 0 and not self.is_mine:
-            arcade.draw_text(str(self.count_mine), self.x, self.y, arcade.color.WHITE, 10,
-                             width=40, align="center",
+            arcade.draw_text(str(self.count_mine), self.x, self.y,
+                             self.color_numbers[self.count_mine - 1],
+                             10, width=40, align="center",
                              anchor_x="center", anchor_y="center")
 
     def check_onclick(self, x, y):
