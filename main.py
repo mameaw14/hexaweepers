@@ -3,9 +3,8 @@ from world import World, Tile, Map
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-BALL_RADIUS = 20
-
-
+GAME = 0
+GAME_OVER = 1
 class HexSweepersGame(arcade.Window):
     """
     Main application class.
@@ -18,15 +17,22 @@ class HexSweepersGame(arcade.Window):
     def __init__(self, width, height):
         super().__init__(width, height)
 
+        self.current_state = GAME
         self.world = World()
-        self.map = Map(13, 20)
         arcade.set_background_color(arcade.color.WHITE)
-        self.set_update_rate(1/60)
         # Note:
         # You can change how often the animate() method is called by using the
         # set_update_rate() method in the parent class.
         # The default is once every 1/80 of a second.
         # self.set_update_rate(1/80)
+    
+    def draw_game(self):
+        self.world.draw()
+    
+    def draw_game_over(self):
+        output = "Game Over"
+        arcade.draw_text(output, 400, 300, arcade.color.BLACK, 54, align="center",
+                         anchor_x="center", anchor_y="center")
 
     def on_draw(self):
         """
@@ -34,13 +40,19 @@ class HexSweepersGame(arcade.Window):
         """
 
         arcade.start_render()
-        self.world.draw()
-        self.map.draw()
+        if self.current_state == GAME:
+            self.draw_game()
+        
+        elif self.current_state == GAME_OVER:
+            self.draw_game()
+            self.draw_game_over()
 
     def animate(self, delta_time):
         """
         All the logic to move, and the game logic goes here.
         """
+        if self.world.is_game_over == True:
+            self.current_state = GAME_OVER
 
     def on_key_press(self, key, key_modifiers):
         """
@@ -78,10 +90,10 @@ class HexSweepersGame(arcade.Window):
         Called when the user presses a mouse button.
         """
         if button == 1:
-            self.map.onclick_left(x, y)
+            self.world.onclick_left(x, y)
         
         if button == 4:
-            self.map.onclick_right(x, y)
+            self.world.onclick_right(x, y)
 
     def on_mouse_release(self, x, y, button, key_modifiers):
         """
@@ -89,6 +101,9 @@ class HexSweepersGame(arcade.Window):
         """
         pass
 
-window = HexSweepersGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+def main():
+    window = HexSweepersGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+    arcade.run()
 
-arcade.run()
+if __name__ == "__main__":
+    main()
