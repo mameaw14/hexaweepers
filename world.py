@@ -145,8 +145,8 @@ class Map(object):
 class Tile(object):
     """hexagon blocks"""
 
-    color_numbers = [arcade.color.AO, arcade.color.FRENCH_BLUE,
-                     arcade.color.BARN_RED, arcade.color.BRIGHT_PINK,
+    color_numbers = [arcade.color.CASTLETON_GREEN, arcade.color.CATALINA_BLUE,
+                     arcade.color.BARN_RED, arcade.color.CRIMSON_GLORY,
                      arcade.color.BURNT_ORANGE, arcade.color.BLACK]
 
     def __init__(self, x, y, is_mine, lis):
@@ -186,7 +186,7 @@ class Tile(object):
         elif self.state == State.flagged:
             self.change_color(arcade.color.SAGE)
         elif self.is_mine:
-            self.change_color(arcade.color.DOGWOOD_ROSE)
+            self.change_color(arcade.color.ROSSO_CORSA)
         else:
             self.change_color(arcade.color.LIGHT_PASTEL_PURPLE)
 
